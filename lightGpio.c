@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #define _GPIO_FILE_NAME_LEN 50
 #define _GPIO_FN_EXPORT "/sys/class/gpio/export"
@@ -12,6 +13,8 @@
 #define _GPIO_DR_MAIN "/sys/class/gpio/gpio%i"
 #define _GPIO_FN_DIRECTION "/sys/class/gpio/gpio%i/direction"
 #define _GPIO_FN_VALUE "/sys/class/gpio/gpio%i/value"
+
+#define _GPIO_WAIT_TIMEOUT 100000
 
 int _gpio_referenc_counter[GPIO_MAX_NUMBER + 1] = {[0 ... GPIO_MAX_NUMBER] = 0};
 
@@ -23,6 +26,26 @@ int _gpio_write_number(int fd, int number) {
     return (ret < 0) ? GPIO_ERROR_FAILED_TO_WRITE_TO_GPIO_FILE : GPIO_NO_ERROR;
 }
 
+/**
+ *  It seems that it takes a while for udev to set correct access rights to newly created gpioN folder.
+ *  This method will wait for the folder to be accessable.
+ */
+int _gpio_wait_for_udev(int number) {
+    char dirName[_GPIO_FILE_NAME_LEN];
+    sprintf(dirName, _GPIO_DR_MAIN, number);
+    struct timespec tstart={0,0}, tnow={0,0}, twait={0, 100};
+    clock_gettime(CLOCK_MONOTONIC, &tstart);
+    do {
+        int res = access(dirName, R_OK);
+        if (res == 0) {
+            return GPIO_NO_ERROR;
+        }
+        nanosleep(&twait, NULL);
+        clock_gettime(CLOCK_MONOTONIC, &tnow);
+    } while ((tstart.tv_sec != tnow.tv_sec) || (tnow.tv_nsec > tstart.tv_nsec + _GPIO_WAIT_TIMEOUT));
+    return GPIO_ERROR_WAITING_FOR_GPION_TIMEDOUT;
+}
+
 int _gpio_export(int number) {
     int fd = open(_GPIO_FN_EXPORT, O_WRONLY);
     if (fd < 0) {
@@ -32,7 +55,7 @@ int _gpio_export(int number) {
         return GPIO_ERROR_FAILED_TO_WRITE_TO_GPIO_FILE;
     }
     close(fd);
-    return GPIO_NO_ERROR;
+    return _gpio_wait_for_udev(number);
 }
 
 int _gpio_unexport(int number) {
