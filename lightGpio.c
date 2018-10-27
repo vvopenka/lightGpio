@@ -26,6 +26,18 @@ int _gpio_write_number(int fd, int number) {
     return (ret < 0) ? GPIO_ERROR_FAILED_TO_WRITE_TO_GPIO_FILE : GPIO_NO_ERROR;
 }
 
+void _gpio_timespec_diff(struct timespec *start, struct timespec *stop,
+                   struct timespec *result)
+{
+    if ((stop->tv_nsec - start->tv_nsec) < 0) {
+        result->tv_sec = stop->tv_sec - start->tv_sec - 1;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec + 1000000000;
+    } else {
+        result->tv_sec = stop->tv_sec - start->tv_sec;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec;
+    }
+}
+
 /**
  *  It seems that it takes a while for udev to set correct access rights to newly created gpioN folder.
  *  This method will wait for the folder to be accessable.
@@ -33,7 +45,7 @@ int _gpio_write_number(int fd, int number) {
 int _gpio_wait_for_udev(int number) {
     char dirName[_GPIO_FILE_NAME_LEN];
     sprintf(dirName, _GPIO_FN_VALUE, number);
-    struct timespec tstart={0,0}, tnow={0,0}, twait={0, 100};
+    struct timespec tstart={0,0}, tnow={0,0}, twait={0, 100}, tdiff;
     clock_gettime(CLOCK_MONOTONIC, &tstart);
     do {
         int res = access(dirName, W_OK);
@@ -42,7 +54,8 @@ int _gpio_wait_for_udev(int number) {
         }
         nanosleep(&twait, NULL);
         clock_gettime(CLOCK_MONOTONIC, &tnow);
-    } while ((tstart.tv_sec != tnow.tv_sec) || (tnow.tv_nsec > tstart.tv_nsec + _GPIO_WAIT_TIMEOUT));
+        _gpio_timespec_diff(&tstart, &tnow, &tdiff);
+    } while ((tdiff.tv_sec > 0) || (tdiff.tv_nsec > _GPIO_WAIT_TIMEOUT));
     return GPIO_ERROR_WAITING_FOR_GPION_TIMEDOUT;
 }
 
