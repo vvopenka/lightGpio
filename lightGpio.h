@@ -26,9 +26,9 @@ typedef struct Gpio {
     int direction;
 } Gpio;
 
-int Gpio_open(Gpio * gpioStruct, int number, int direction);
-int Gpio_close(Gpio * gpioStruct);
-int Gpio_get_value(Gpio * gpioStruct);
-int Gpio_set_value(Gpio * gpioStruct, int value);
+int gpio_open(Gpio * gpioStruct, int number, int direction);
+int gpio_close(Gpio * gpioStruct);
+int gpio_get_value(Gpio * gpioStruct);
+int gpio_set_value(Gpio * gpioStruct, int value);
 
 #endif

@@ -74,7 +74,7 @@ int _gpio_set_direction(int number, int direction) {
     return (err < 0) ? GPIO_ERROR_FAILED_TO_WRITE_TO_GPIO_FILE : GPIO_NO_ERROR;
 }
 
-int Gpio_open(Gpio * gpioStruct, int number, int direction) {
+int gpio_open(Gpio * gpioStruct, int number, int direction) {
     if (number < 0 || number > GPIO_MAX_NUMBER) {
         return GPIO_ERROR_NUMBER_OUT_OF_RANGE;
     }
@@ -83,9 +83,7 @@ int Gpio_open(Gpio * gpioStruct, int number, int direction) {
     _gpio_referenc_counter[number]++;
 
     int hasDir = _gpio_has_dir(number);
-    if (hasDir < 0) {
-        return GPIO_ERROR_CANNOT_OPEN_GPIO_FILE;
-    } else if (hasDir == 0) {
+    if (hasDir <= 0) {
         int err = _gpio_export(number);
         if (err < 0) {
             return err;
@@ -94,7 +92,7 @@ int Gpio_open(Gpio * gpioStruct, int number, int direction) {
     return _gpio_set_direction(number, direction);
 }
 
-int Gpio_close(Gpio * gpioStruct) {
+int gpio_close(Gpio * gpioStruct) {
     _gpio_referenc_counter[gpioStruct->number]--;
     if (_gpio_referenc_counter[gpioStruct->number] == 0) {
         return _gpio_unexport(gpioStruct->number);
@@ -102,7 +100,7 @@ int Gpio_close(Gpio * gpioStruct) {
     return GPIO_NO_ERROR;
 }
 
-int Gpio_get_value(Gpio * gpioStruct) {
+int gpio_get_value(Gpio * gpioStruct) {
     if (gpioStruct->direction != GPIO_DIRECTION_IN) {
         return GPIO_ERROR_WRONG_DIRECTION;
     }
@@ -128,7 +126,7 @@ int Gpio_get_value(Gpio * gpioStruct) {
     }
 }
 
-int Gpio_set_value(Gpio * gpioStruct, int value) {
+int gpio_set_value(Gpio * gpioStruct, int value) {
     if (gpioStruct->direction != GPIO_DIRECTION_OUT) {
         return GPIO_ERROR_WRONG_DIRECTION;
     }
