@@ -32,11 +32,11 @@ int _gpio_write_number(int fd, int number) {
  */
 int _gpio_wait_for_udev(int number) {
     char dirName[_GPIO_FILE_NAME_LEN];
-    sprintf(dirName, _GPIO_DR_MAIN, number);
+    sprintf(dirName, _GPIO_FN_VALUE, number);
     struct timespec tstart={0,0}, tnow={0,0}, twait={0, 100};
     clock_gettime(CLOCK_MONOTONIC, &tstart);
     do {
-        int res = access(dirName, R_OK);
+        int res = access(dirName, W_OK);
         if (res == 0) {
             return GPIO_NO_ERROR;
         }
