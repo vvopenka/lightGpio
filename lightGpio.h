@@ -19,17 +19,25 @@
 #define GPIO_ERROR_WRONG_DIRECTION -4
 #define GPIO_ERROR_UNEXPECTED_VALUE -5
 #define GPIO_ERROR_WAITING_FOR_GPION_TIMEDOUT -6
+#define GPIO_ERROR_UNSUPPORTED_COMBINATION -7
 
 #define GPIO_MAX_NUMBER 128
+#define GPIO_NO_TIMEOUT -1
+#define GPIO_WAIT_TIMEDOUT 0
+#define GPIO_WAIT_RETURNED 1
+#define GPIO_WAIT_RETURNED_WITH_ERROR -1
 
 typedef struct Gpio {
     int number;
     int direction;
+    int edge;
+    int valueFd;
 } Gpio;
 
-int gpio_open(Gpio * gpioStruct, int number, int direction);
+int gpio_open(Gpio * gpioStruct);
 int gpio_close(Gpio * gpioStruct);
 int gpio_get_value(Gpio * gpioStruct);
 int gpio_set_value(Gpio * gpioStruct, int value);
+int gpio_wait_for_edge(Gpio * gpioStruct, int timeout);
 
 #endif
