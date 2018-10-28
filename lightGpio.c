@@ -252,6 +252,11 @@ int gpio_wait_for_edge(Gpio * gpioStruct, int timeout) {
     struct pollfd pfd;
     pfd.fd = gpioStruct->valueFd;
     pfd.events = POLLPRI | POLLERR;
+    
+    //Make a dummy read, otherwise poll will return imidietly if the file is freshly opened.
+    char ch;
+    read(pfd.fd, &ch, 1);
+
     err = poll(&pfd, 1, timeout);
     if (err == 0) {
         return GPIO_WAIT_TIMEDOUT;
