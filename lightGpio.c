@@ -253,9 +253,7 @@ int gpio_wait_for_edge(Gpio * gpioStruct, int timeout) {
     pfd.fd = gpioStruct->valueFd;
     pfd.events = POLLPRI | POLLERR;
     
-    //Make a dummy read, otherwise poll will return imidietly if the file is freshly opened.
-    char ch;
-    read(pfd.fd, &ch, 1);
+    lseek(gpioStruct->valueFd, 0, SEEK_SET);
 
     err = poll(&pfd, 1, timeout);
     if (err == 0) {
@@ -263,6 +261,7 @@ int gpio_wait_for_edge(Gpio * gpioStruct, int timeout) {
     } else if (err < 0) {
         return GPIO_WAIT_RETURNED_WITH_ERROR;
     } else if (err == 1) {
+        lseek(gpioStruct->valueFd, 0, SEEK_SET);
         return GPIO_WAIT_RETURNED;
     }
     return GPIO_ERROR_UNEXPECTED_VALUE;
