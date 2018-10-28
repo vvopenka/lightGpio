@@ -160,7 +160,7 @@ int gpio_open(Gpio * gpioStruct) {
     if (number < 0 || number > GPIO_MAX_NUMBER) {
         return GPIO_ERROR_NUMBER_OUT_OF_RANGE;
     }
-    if (direction != GPIO_DIRECTION_IN || direction != GPIO_DIRECTION_OUT) {
+    if (direction != GPIO_DIRECTION_IN && direction != GPIO_DIRECTION_OUT) {
         return GPIO_ERROR_WRONG_DIRECTION;
     }
     switch (edge) {
